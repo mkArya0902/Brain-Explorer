@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Explorer — NeuroTech</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --bg: #020408;
+  --bg2: #050c14;
+  --neon: #00d4ff;
+  --neon2: #7b2fff;
+  --neon3: #ff2fa0;
+  --glass: rgba(0,212,255,0.05);
+  --glass2: rgba(123,47,255,0.07);
+  --border: rgba(0,212,255,0.15);
+  --text: #e8f4ff;
+  --muted: rgba(232,244,255,0.5);
+  --card-bg: rgba(5,15,30,0.85);
+  --glow: 0 0 30px rgba(0,212,255,0.3);
+  --glow2: 0 0 30px rgba(123,47,255,0.3);
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--neon2); border-radius: 4px; }
+
+/* ===== NOISE OVERLAY ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ===== GRID BG ===== */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== NAV ===== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(2,4,8,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--neon);
+  text-shadow: 0 0 20px var(--neon);
+}
+.nav-links { display: flex; gap: 28px; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+.nav-quiz-btn {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid var(--neon2);
+  color: var(--neon2);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+.nav-quiz-btn:hover {
+  background: var(--neon2);
+  color: white;
+  box-shadow: var(--glow2);
+}
+
+/* ===== HERO ===== */
+#hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 0 20px;
+  z-index: 1;
+}
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.hero-orb-1 { width: 500px; height: 500px; background: rgba(0,212,255,0.08); top: 50%; left: 50%; transform: translate(-60%,-60%); }
+.hero-orb-2 { width: 400px; height: 400px; background: rgba(123,47,255,0.10); top: 50%; left: 50%; transform: translate(-30%,-30%); }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon);
+  margin-bottom: 24px;
+  animation: fadeDown 0.8s ease both;
+  backdrop-filter: blur(10px);
+  background: var(--glass);
+}
+.hero-badge span { width: 6px; height: 6px; background: var(--neon); border-radius: 50%; animation: pulse 2s infinite; }
+h1.hero-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -2px;
+  animation: fadeUp 0.9s 0.2s ease both;
+  position: relative;
+}
+.hero-title .accent { color: var(--neon); text-shadow: 0 0 40px var(--neon), 0 0 80px rgba(0,212,255,0.3); }
+.hero-sub {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: var(--muted);
+  margin: 16px 0 40px;
+  font-weight: 300;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  animation: fadeUp 0.9s 0.4s ease both;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 40px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(123,47,255,0.15));
+  border: 1px solid var(--neon);
+  color: var(--neon);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 6px;
+  cursor: pointer;
+  animation: fadeUp 0.9s 0.6s ease both;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0,212,255,0.2);
+}
+.hero-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--neon), var(--neon2));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.hero-cta:hover::before { opacity: 0.15; }
+.hero-cta:hover { box-shadow: 0 0 50px rgba(0,212,255,0.4), 0 0 100px rgba(0,212,255,0.1); transform: translateY(-2px); }
+.hero-cta span { position: relative; }
+.scroll-hint {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  animation: fadeUp 1s 1s ease both;
+}
+.scroll-hint-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--neon), transparent);
+  animation: scrollDrop 2s infinite;
+}
+
+/* ===== 3D BRAIN SECTION ===== */
+#brain-3d {
+  position: relative;
+  z-index: 1;
+  padding: 80px 20px;
+  text-align: center;
+}
+#brain-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  margin: 40px auto;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(0,212,255,0.06), transparent 70%);
+}
+#brain-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50%;
+}
+.brain-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  animation: ringPulse 4s infinite;
+}
+.brain-ring-1 { inset: -20px; animation-delay: 0s; }
+.brain-ring-2 { inset: -40px; animation-delay: 1s; opacity: 0.5; }
+.brain-ring-3 { inset: -60px; animation-delay: 2s; opacity: 0.25; }
+#hotspot-info {
+  position: absolute;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 0.9rem;
+  max-width: 220px;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 10;
+  box-shadow: var(--glow);
+}
+#hotspot-info.show { opacity: 1; }
+#hotspot-info h4 { color: var(--neon); font-family: 'Orbitron', monospace; font-size: 0.8rem; margin-bottom: 6px; }
+.drag-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  margin-top: 10px;
+}
+
+/* ===== SECTION HEADER ===== */
+.section-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.section-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--neon2);
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  border: 1px solid rgba(123,47,255,0.3);
+  border-radius: 100px;
+}
+.section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+.section-title .hl { color: var(--neon); }
+.section-line {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(to right, var(--neon), var(--neon2));
+  margin: 16px auto 0;
+  border-radius: 2px;
+}
+
+/* ===== SECTION WRAPPER ===== */
+section { position: relative; z-index: 1; padding: 100px 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+
+/* ===== CARDS ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.23,1,0.32,1);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon), transparent);
+  transform: scaleX(0);
+  transition: transform 0.4s;
+}
+.card:hover { transform: translateY(-6px); border-color: rgba(0,212,255,0.3); box-shadow: var(--glow); }
+.card:hover::before { transform: scaleX(1); }
+.card-icon { font-size: 2rem; margin-bottom: 16px; }
+.card h3 { font-family: 'Orbitron', monospace; font-size: 0.9rem; font-weight: 700; color: var(--neon); margin-bottom: 10px; letter-spacing: 1px; }
+.card p { color: var(--muted); font-size: 0.92rem; line-height: 1.7; font-weight: 300; }
+
+/* ===== ANATOMY SECTION ===== */
+.anatomy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+.anatomy-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s;
+}
+.anatomy-card:hover { box-shadow: var(--glow2); border-color: rgba(123,47,255,0.4); transform: translateY(-4px); }
+.anatomy-card-head {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(123,47,255,0.12), rgba(0,212,255,0.06));
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.anatomy-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  color: var(--neon2);
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(123,47,255,0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.anatomy-card-head h3 { font-family: 'Orbitron', monospace; font-size: 0.9rem; color: var(--text); }
+.anatomy-card-body { padding: 20px 24px; }
+.anatomy-card-body p { color: var(--muted); font-size: 0.92rem; line-height: 1.8; }
+.anatomy-tag {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 3px 10px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 100px;
+  font-size: 0.7rem;
+  color: var(--neon);
+  letter-spacing: 1px;
+}
+
+/* ===== FUNCTION CARDS ===== */
+.func-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+.func-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  cursor: pointer;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+  group: true;
+}
+.func-card-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(0,212,255,0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.func-card:hover .func-card-glow { opacity: 1; }
+.func-card:hover { border-color: var(--neon); transform: translateY(-4px); box-shadow: var(--glow); }
+.func-card h3 { font-family: 'Orbitron', monospace; font-size: 0.8rem; color: var(--neon); margin-bottom: 10px; }
+.func-card .func-main { color: var(--text); font-size: 1rem; font-weight: 600; margin-bottom: 12px; }
+.func-card .func-desc { color: var(--muted); font-size: 0.85rem; line-height: 1.7; display: none; }
+.func-card:hover .func-desc { display: block; }
+.func-card .func-loc { font-size: 0.75rem; color: var(--neon2); margin-top: 10px; letter-spacing: 1px; }
+
+/* ===== CRANIAL NERVES TABLE ===== */
+.nerves-table-wrap {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.nerves-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.nerves-table th {
+  background: rgba(0,212,255,0.08);
+  padding: 14px 20px;
+  text-align: left;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  color: var(--neon);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.nerves-table td {
+  padding: 12px 20px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  border-bottom: 1px solid rgba(0,212,255,0.05);
+}
+.nerves-table tr:hover td { background: rgba(0,212,255,0.04); color: var(--text); }
+.nerve-type {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.type-s { background: rgba(0,212,255,0.1); color: var(--neon); border: 1px solid rgba(0,212,255,0.2); }
+.type-m { background: rgba(255,47,160,0.1); color: var(--neon3); border: 1px solid rgba(255,47,160,0.2); }
+.type-b { background: rgba(123,47,255,0.1); color: var(--neon2); border: 1px solid rgba(123,47,255,0.2); }
+
+/* ===== BLOOD SUPPLY ===== */
+.blood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+.blood-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.blood-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--neon3), var(--neon2));
+  transform: scaleX(0);
+  transition: transform 0.4s;
+}
+.blood-card:hover::after { transform: scaleX(1); }
+.blood-card:hover { box-shadow: 0 0 30px rgba(255,47,160,0.15); border-color: rgba(255,47,160,0.3); }
+.blood-icon { font-size: 2.2rem; margin-bottom: 16px; }
+.blood-card h3 { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--neon3); margin-bottom: 10px; }
+.blood-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+.stroke-alert {
+  background: linear-gradient(135deg, rgba(255,47,160,0.1), rgba(255,100,50,0.07));
+  border: 1px solid rgba(255,47,160,0.3);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.stroke-alert-icon { font-size: 1.8rem; flex-shrink: 0; }
+.stroke-alert h4 { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--neon3); margin-bottom: 8px; }
+.stroke-alert p { color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+
+/* ===== CLINICAL CARDS ===== */
+.clinical-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 24px;
+}
+.clinical-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.4s;
+}
+.clinical-card:hover { box-shadow: var(--glow); transform: translateY(-4px); border-color: rgba(0,212,255,0.3); }
+.clinical-card-top {
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,47,255,0.06));
+  border-bottom: 1px solid var(--border);
+}
+.clinical-num { font-family: 'Orbitron', monospace; font-size: 0.65rem; color: var(--neon2); letter-spacing: 2px; margin-bottom: 6px; }
+.clinical-card-top h3 { font-family: 'Orbitron', monospace; font-size: 1.1rem; color: var(--neon); }
+.clinical-card-body { padding: 24px; }
+.clinical-row { margin-bottom: 16px; }
+.clinical-row-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--neon2); margin-bottom: 4px; }
+.clinical-row-val { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+/* ===== DISEASES ===== */
+.disease-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+.disease-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  transition: all 0.4s;
+  position: relative;
+}
+.disease-card:hover { box-shadow: var(--glow2); border-color: rgba(123,47,255,0.35); transform: translateY(-4px); }
+.disease-emoji { font-size: 2.4rem; margin-bottom: 14px; display: block; }
+.disease-card h3 { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--neon2); margin-bottom: 12px; }
+.disease-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+.disease-tag { display: inline-block; margin-top: 12px; padding: 3px 10px; background: rgba(123,47,255,0.1); border: 1px solid rgba(123,47,255,0.25); border-radius: 100px; font-size: 0.7rem; color: var(--neon2); }
+
+/* ===== FUN FACTS ===== */
+#fun {
+  background: linear-gradient(135deg, rgba(0,212,255,0.04), rgba(123,47,255,0.06));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.fun-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+.fun-card {
+  text-align: center;
+  padding: 40px 24px;
+  border-radius: 16px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.fun-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent, rgba(0,212,255,0.04), transparent);
+  animation: rotateBg 8s linear infinite;
+}
+.fun-card:hover { box-shadow: var(--glow); border-color: var(--neon); }
+.fun-num {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  color: var(--neon);
+  text-shadow: 0 0 30px var(--neon);
+  margin-bottom: 8px;
+  position: relative;
+}
+.fun-label { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 6px; position: relative; }
+.fun-sub { font-size: 0.82rem; color: var(--muted); position: relative; }
+
+/* ===== QUIZ MODAL ===== */
+#quiz-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#quiz-overlay.open { display: flex; }
+#quiz-modal {
+  background: rgba(5,12,25,0.97);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 620px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--glow), var(--glow2);
+  animation: modalIn 0.4s cubic-bezier(0.23,1,0.32,1);
+}
+.quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.quiz-title { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--neon); letter-spacing: 2px; }
+.quiz-close {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+}
+.quiz-close:hover { background: rgba(255,47,160,0.2); border-color: var(--neon3); color: white; }
+.quiz-progress-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+.quiz-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon), var(--neon2));
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+.quiz-q-num { font-size: 0.75rem; letter-spacing: 3px; color: var(--neon2); margin-bottom: 12px; }
+.quiz-q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 24px; line-height: 1.5; }
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-opt {
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-family: 'Rajdhani', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: left;
+}
+.quiz-opt:hover:not(:disabled) { background: rgba(0,212,255,0.08); border-color: var(--neon); color: var(--neon); }
+.quiz-opt.correct { background: rgba(0,255,120,0.12) !important; border-color: #00ff78 !important; color: #00ff78 !important; }
+.quiz-opt.wrong { background: rgba(255,47,100,0.12) !important; border-color: #ff2f64 !important; color: #ff2f64 !important; }
+.quiz-opt:disabled { cursor: not-allowed; opacity: 0.7; }
+.quiz-feedback { margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: 0.88rem; display: none; }
+.quiz-feedback.show { display: block; }
+.quiz-feedback.correct { background: rgba(0,255,120,0.1); border: 1px solid rgba(0,255,120,0.3); color: #00ff78; }
+.quiz-feedback.wrong { background: rgba(255,47,100,0.1); border: 1px solid rgba(255,47,100,0.3); color: #ff6b6b; }
+.quiz-next {
+  margin-top: 20px;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(123,47,255,0.15));
+  border: 1px solid var(--neon);
+  color: var(--neon);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s;
+  display: none;
+}
+.quiz-next.show { display: block; }
+.quiz-next:hover { background: rgba(0,212,255,0.25); box-shadow: var(--glow); }
+/* Score Screen */
+#score-screen { display: none; text-align: center; }
+#score-screen.show { display: block; }
+.score-circle {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  border: 3px solid var(--neon);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: var(--glow);
+  background: rgba(0,212,255,0.04);
+}
+.score-num { font-family: 'Orbitron', monospace; font-size: 2.5rem; font-weight: 900; color: var(--neon); }
+.score-denom { font-size: 0.8rem; color: var(--muted); }
+.score-msg { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+.score-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 28px; }
+.quiz-restart {
+  padding: 12px 32px;
+  background: transparent;
+  border: 1px solid var(--neon2);
+  color: var(--neon2);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s;
+  margin-right: 12px;
+}
+.quiz-restart:hover { background: rgba(123,47,255,0.2); box-shadow: var(--glow2); }
+
+/* ===== FOOTER ===== */
+footer {
+  position: relative;
+  z-index: 1;
+  padding: 50px 20px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.4);
+}
+.footer-logo { font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: 900; color: var(--neon); text-shadow: 0 0 20px var(--neon); margin-bottom: 20px; }
+.footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+.footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.footer-links a:hover { color: var(--neon); }
+.footer-credit a {
+  color: var(--neon2);
+  text-decoration: none;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  transition: all 0.3s;
+}
+.footer-credit a:hover { color: var(--neon); text-shadow: 0 0 15px var(--neon); }
+.footer-copy { margin-top: 16px; color: rgba(255,255,255,0.15); font-size: 0.75rem; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+@keyframes scrollDrop { 0%{transform:scaleY(0);transform-origin:top;} 50%{transform:scaleY(1);transform-origin:top;} 51%{transform:scaleY(1);transform-origin:bottom;} 100%{transform:scaleY(0);transform-origin:bottom;} }
+@keyframes ringPulse { 0%,100%{opacity:0.6;} 50%{opacity:0.1;} }
+@keyframes rotateBg { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+@keyframes modalIn { from{opacity:0;transform:scale(0.9) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+@keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+.float { animation: float 6s ease-in-out infinite; }
+
+/* ===== REVEAL ===== */
+.reveal { opacity:0; transform:translateY(40px); transition: opacity 0.7s, transform 0.7s; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px) {
+  nav { padding: 12px 16px; }
+  .nav-links { display: none; }
+  section { padding: 60px 16px; }
+  #quiz-modal { padding: 24px; }
+  .cards-grid, .anatomy-grid, .clinical-grid, .disease-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <div class="nav-logo">NEURO<span style="color:var(--neon2)">X</span></div>
+  <div class="nav-links">
+    <a href="#anatomy">Anatomy</a>
+    <a href="#functions">Functions</a>
+    <a href="#nerves">Nerves</a>
+    <a href="#diseases">Diseases</a>
+    <a href="#fun">Facts</a>
+  </div>
+  <button class="nav-quiz-btn" onclick="openQuiz()">QUIZ MODE</button>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-badge"><span></span>Interactive Medical Education</div>
+  <h1 class="hero-title">Brain<br><span class="accent">Explorer</span></h1>
+  <p class="hero-sub">Control Center of the Human Body</p>
+  <a href="#brain-3d" class="hero-cta">
+    <span>🧠 Explore Brain</span>
+  </a>
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-hint-line"></div>
+  </div>
+</section>
+
+<!-- ===== 3D BRAIN ===== -->
+<section id="brain-3d">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Interactive 3D Model</div>
+      <h2 class="section-title">The <span class="hl">Living</span> Brain</h2>
+      <div class="section-line"></div>
+    </div>
+    <div id="brain-canvas-wrap">
+      <div class="brain-ring brain-ring-1"></div>
+      <div class="brain-ring brain-ring-2"></div>
+      <div class="brain-ring brain-ring-3"></div>
+      <canvas id="brain-canvas"></canvas>
+      <div id="hotspot-info">
+        <h4 id="hotspot-name">Frontal Lobe</h4>
+        <p id="hotspot-desc">Info here</p>
+      </div>
+    </div>
+    <p class="drag-hint">🖱 Drag to rotate • Scroll to zoom • Click hotspots</p>
+  </div>
+</section>
+
+<!-- ===== ANATOMY ===== -->
+<section id="anatomy">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Neuroanatomy</div>
+      <h2 class="section-title">Brain <span class="hl">Anatomy</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="anatomy-grid">
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">01</div>
+          <h3>Cerebrum</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Largest part of the brain — makes up about 85% of brain weight. Divided into left and right hemispheres, each controlling the opposite side of the body. Responsible for thinking, memory, speech, and voluntary movement.</p>
+          <span class="anatomy-tag">Higher Functions</span>
+        </div>
+      </div>
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">02</div>
+          <h3>Cerebellum</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Located at the back and bottom of the brain. Often called the "little brain." Controls balance, coordination, and fine motor movements. Damage causes ataxia — uncoordinated, clumsy movements.</p>
+          <span class="anatomy-tag">Coordination</span>
+        </div>
+      </div>
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">03</div>
+          <h3>Brainstem</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Connects the brain to the spinal cord. Consists of the midbrain, pons, and medulla oblongata. Controls vital functions like breathing, heart rate, and blood pressure. Damage can be life-threatening.</p>
+          <span class="anatomy-tag">Vital Functions</span>
+        </div>
+      </div>
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">04</div>
+          <h3>Frontal Lobe</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Anterior part of cerebrum. Responsible for personality, decision making, voluntary movement, and speech production (Broca's area). Prefrontal cortex is key for executive functions like planning and judgment.</p>
+          <span class="anatomy-tag">Executive Function</span>
+        </div>
+      </div>
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">05</div>
+          <h3>Parietal Lobe</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Located behind the frontal lobe. Processes sensory information — touch, pain, temperature, pressure. Contains the primary somatosensory cortex. Also involved in spatial awareness and navigation.</p>
+          <span class="anatomy-tag">Sensory Processing</span>
+        </div>
+      </div>
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">06</div>
+          <h3>Temporal Lobe</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Located on the sides of the brain near the temples. Processes hearing and language comprehension (Wernicke's area). Also important for memory formation — contains the hippocampus.</p>
+          <span class="anatomy-tag">Memory & Hearing</span>
+        </div>
+      </div>
+
+      <div class="anatomy-card reveal">
+        <div class="anatomy-card-head">
+          <div class="anatomy-num">07</div>
+          <h3>Occipital Lobe</h3>
+        </div>
+        <div class="anatomy-card-body">
+          <p>Located at the back of the brain. Primary visual processing center. Contains the visual cortex. Damage causes visual defects or even cortical blindness despite normal eyes.</p>
+          <span class="anatomy-tag">Vision</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FUNCTIONAL AREAS ===== -->
+<section id="functions" style="background:linear-gradient(180deg,var(--bg2),var(--bg));">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Cortical Mapping</div>
+      <h2 class="section-title">Functional <span class="hl">Areas</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="func-grid">
+
+      <div class="func-card reveal">
+        <div class="func-card-glow"></div>
+        <h3>Motor Cortex</h3>
+        <div class="func-main">Voluntary Movement</div>
+        <div class="func-desc">Controls all voluntary movement of the body. Located in the precentral gyrus of the frontal lobe. Body representation follows the "homunculus" map — hands and face have the largest areas.</div>
+        <div class="func-loc">📍 Frontal Lobe — Precentral Gyrus</div>
+      </div>
+
+      <div class="func-card reveal">
+        <div class="func-card-glow"></div>
+        <h3>Sensory Cortex</h3>
+        <div class="func-main">Touch & Pain Perception</div>
+        <div class="func-desc">Processes all somatosensory information — touch, pain, temperature. Located in the postcentral gyrus. Each body part has a dedicated region. Damage = loss of sensation (anesthesia).</div>
+        <div class="func-loc">📍 Parietal Lobe — Postcentral Gyrus</div>
+      </div>
+
+      <div class="func-card reveal">
+        <div class="func-card-glow"></div>
+        <h3>Broca's Area</h3>
+        <div class="func-main">Speech Production</div>
+        <div class="func-desc">Controls the formation and production of speech. Damage causes Broca's aphasia — patient understands language but speaks in short, broken sentences. Called "non-fluent aphasia."</div>
+        <div class="func-loc">📍 Left Frontal Lobe — Area 44, 45</div>
+      </div>
+
+      <div class="func-card reveal">
+        <div class="func-card-glow"></div>
+        <h3>Wernicke's Area</h3>
+        <div class="func-main">Language Understanding</div>
+        <div class="func-desc">Responsible for comprehension of language. Damage causes Wernicke's aphasia — patient speaks fluently but the words make no sense ("word salad"). Understanding is impaired.</div>
+        <div class="func-loc">📍 Left Temporal Lobe — Area 22</div>
+      </div>
+
+      <div class="func-card reveal">
+        <div class="func-card-glow"></div>
+        <h3>Visual Cortex</h3>
+        <div class="func-main">Vision Processing</div>
+        <div class="func-desc">Primary visual area (V1) receives signals from the eyes via the optic tract. Processes color, shape, movement, and depth. Located in the calcarine sulcus. Damage = visual field defects.</div>
+        <div class="func-loc">📍 Occipital Lobe — Calcarine Sulcus</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== CRANIAL NERVES ===== -->
+<section id="nerves">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Neuroanatomy</div>
+      <h2 class="section-title">12 Cranial <span class="hl">Nerves</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="nerves-table-wrap reveal">
+      <table class="nerves-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nerve Name</th>
+            <th>Type</th>
+            <th>Key Function</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>CN I</td><td>Olfactory</td><td><span class="nerve-type type-s">Sensory</span></td><td>Smell</td></tr>
+          <tr><td>CN II</td><td>Optic</td><td><span class="nerve-type type-s">Sensory</span></td><td>Vision</td></tr>
+          <tr><td>CN III</td><td>Oculomotor</td><td><span class="nerve-type type-m">Motor</span></td><td>Eye movement, pupil constriction</td></tr>
+          <tr><td>CN IV</td><td>Trochlear</td><td><span class="nerve-type type-m">Motor</span></td><td>Superior oblique eye movement</td></tr>
+          <tr><td>CN V</td><td>Trigeminal</td><td><span class="nerve-type type-b">Both</span></td><td>Face sensation + mastication</td></tr>
+          <tr><td>CN VI</td><td>Abducens</td><td><span class="nerve-type type-m">Motor</span></td><td>Lateral eye movement</td></tr>
+          <tr><td>CN VII</td><td>Facial</td><td><span class="nerve-type type-b">Both</span></td><td>Facial expression, taste (ant. 2/3 tongue)</td></tr>
+          <tr><td>CN VIII</td><td>Vestibulocochlear</td><td><span class="nerve-type type-s">Sensory</span></td><td>Hearing and balance</td></tr>
+          <tr><td>CN IX</td><td>Glossopharyngeal</td><td><span class="nerve-type type-b">Both</span></td><td>Swallowing, taste (post. 1/3 tongue)</td></tr>
+          <tr><td>CN X</td><td>Vagus</td><td><span class="nerve-type type-b">Both</span></td><td>Heart, lungs, GI tract (parasympathetic)</td></tr>
+          <tr><td>CN XI</td><td>Accessory</td><td><span class="nerve-type type-m">Motor</span></td><td>Head turning, shoulder shrug</td></tr>
+          <tr><td>CN XII</td><td>Hypoglossal</td><td><span class="nerve-type type-m">Motor</span></td><td>Tongue movements</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align:center;margin-top:16px;color:var(--muted);font-size:0.8rem;letter-spacing:1px;">Mnemonic: <span style="color:var(--neon)">Oh Oh Oh To Touch And Feel Very Good Velvet AHH</span></p>
+  </div>
+</section>
+
+<!-- ===== BLOOD SUPPLY ===== -->
+<section id="blood" style="background:linear-gradient(180deg,var(--bg2),var(--bg));">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Vascular Neurology</div>
+      <h2 class="section-title">Brain <span class="hl">Blood Supply</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="blood-grid">
+      <div class="blood-card reveal">
+        <div class="blood-icon">🔵</div>
+        <h3>Circle of Willis</h3>
+        <p>An anastomotic ring at the base of the brain formed by the junction of internal carotid and vertebral arteries. Provides collateral circulation — if one artery is blocked, blood can reroute through the circle. Major clinical significance in aneurysms and strokes.</p>
+      </div>
+      <div class="blood-card reveal">
+        <div class="blood-icon">🩸</div>
+        <h3>Internal Carotid Arteries</h3>
+        <p>Supply the anterior 2/3 of the brain including frontal, parietal, and temporal lobes. Gives rise to the anterior cerebral artery (ACA) and middle cerebral artery (MCA). MCA territory is the most common area for stroke.</p>
+      </div>
+      <div class="blood-card reveal">
+        <div class="blood-icon">🔴</div>
+        <h3>Vertebrobasilar System</h3>
+        <p>Two vertebral arteries join to form the basilar artery. Supplies the posterior brain — occipital lobe, cerebellum, and brainstem. Occlusion causes posterior circulation stroke with symptoms like vertigo, diplopia, and ataxia.</p>
+      </div>
+    </div>
+    <div class="stroke-alert reveal">
+      <div class="stroke-alert-icon">⚡</div>
+      <div>
+        <h4>Clinical Note — Stroke</h4>
+        <p>When blood supply to the brain is interrupted, neurons begin to die within 4–6 minutes. Two types: <strong style="color:var(--text)">Ischemic stroke</strong> (clot blocks artery — 80% of cases) and <strong style="color:var(--text)">Hemorrhagic stroke</strong> (vessel ruptures). Remember <strong style="color:var(--neon3)">FAST</strong> — Face drooping, Arm weakness, Speech difficulty, Time to call emergency. Treatment: tPA (clot buster) within 4.5 hours of ischemic stroke.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CLINICAL CONDITIONS ===== -->
+<section id="clinical">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Clinical Neurology</div>
+      <h2 class="section-title">Clinical <span class="hl">Conditions</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="clinical-grid">
+
+      <div class="clinical-card reveal">
+        <div class="clinical-card-top">
+          <div class="clinical-num">CONDITION 01</div>
+          <h3>Stroke (CVA)</h3>
+        </div>
+        <div class="clinical-card-body">
+          <div class="clinical-row">
+            <div class="clinical-row-label">Cause</div>
+            <div class="clinical-row-val">Ischemia (clot/thrombus) or hemorrhage in brain vessels. Risk factors: hypertension, diabetes, AF.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Symptoms</div>
+            <div class="clinical-row-val">Sudden facial drooping, arm weakness, slurred speech, visual loss, confusion, severe headache.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Complications</div>
+            <div class="clinical-row-val">Paralysis, aphasia, dysphagia, aspiration pneumonia, DVT, depression.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Treatment</div>
+            <div class="clinical-row-val">tPA (thrombolysis) within 4.5 hrs for ischemic stroke; surgical intervention for hemorrhagic.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clinical-card reveal">
+        <div class="clinical-card-top">
+          <div class="clinical-num">CONDITION 02</div>
+          <h3>Brain Tumor</h3>
+        </div>
+        <div class="clinical-card-body">
+          <div class="clinical-row">
+            <div class="clinical-row-label">Cause</div>
+            <div class="clinical-row-val">Abnormal cell proliferation in brain tissue. Primary (glioma, meningioma) or secondary (metastatic).</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Symptoms</div>
+            <div class="clinical-row-val">Headache (worse in morning), nausea/vomiting, seizures, focal neurological deficits, personality change.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Complications</div>
+            <div class="clinical-row-val">Raised ICP, brain herniation, hydrocephalus, cognitive decline.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Treatment</div>
+            <div class="clinical-row-val">Surgery (craniotomy), radiotherapy, chemotherapy (temozolomide for GBM), steroids for edema.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clinical-card reveal">
+        <div class="clinical-card-top">
+          <div class="clinical-num">CONDITION 03</div>
+          <h3>Head Injury (TBI)</h3>
+        </div>
+        <div class="clinical-card-body">
+          <div class="clinical-row">
+            <div class="clinical-row-label">Cause</div>
+            <div class="clinical-row-val">Trauma to the skull/brain — RTA, falls, assault. Classified as mild (concussion), moderate, or severe.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Symptoms</div>
+            <div class="clinical-row-val">Loss of consciousness, amnesia, headache, vomiting, pupil changes, confusion (GCS score used).</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Complications</div>
+            <div class="clinical-row-val">Epidural/subdural hematoma, DAI, raised ICP, post-traumatic epilepsy, cognitive deficits.</div>
+          </div>
+          <div class="clinical-row">
+            <div class="clinical-row-label">Treatment</div>
+            <div class="clinical-row-val">ABC stabilization, CT scan urgently, surgical evacuation of hematoma, ICP monitoring in ICU.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== DISEASES ===== -->
+<section id="diseases" style="background:linear-gradient(180deg,var(--bg2),var(--bg));">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Neurology</div>
+      <h2 class="section-title">Brain <span class="hl">Diseases</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="disease-grid">
+
+      <div class="disease-card reveal">
+        <span class="disease-emoji">🧓</span>
+        <h3>Alzheimer's Disease</h3>
+        <p>Most common cause of dementia. Progressive destruction of neurons due to beta-amyloid plaques and tau tangles. Starts with short-term memory loss, progresses to complete cognitive failure. No cure — only symptomatic treatment (donepezil, memantine).</p>
+        <span class="disease-tag">Neurodegenerative</span>
+      </div>
+
+      <div class="disease-card reveal">
+        <span class="disease-emoji">🤲</span>
+        <h3>Parkinson's Disease</h3>
+        <p>Degeneration of dopaminergic neurons in substantia nigra. Classic triad: tremor (pill-rolling, resting), rigidity (cogwheel), and bradykinesia. Also causes shuffling gait, mask-like face, micrographia. Treated with levodopa/carbidopa.</p>
+        <span class="disease-tag">Neurodegenerative</span>
+      </div>
+
+      <div class="disease-card reveal">
+        <span class="disease-emoji">⚡</span>
+        <h3>Epilepsy</h3>
+        <p>Recurrent, unprovoked seizures due to abnormal electrical activity. Focal (one area) or generalized (whole brain). Types: absence (petit mal), tonic-clonic (grand mal), temporal lobe epilepsy. Treated with antiepileptic drugs (sodium valproate, carbamazepine).</p>
+        <span class="disease-tag">Seizure Disorder</span>
+      </div>
+
+      <div class="disease-card reveal">
+        <span class="disease-emoji">🦠</span>
+        <h3>Meningitis</h3>
+        <p>Inflammation of the meninges (brain coverings). Bacterial (most dangerous — N. meningitidis), viral, or fungal. Classic triad: headache + neck stiffness (nuchal rigidity) + fever. Signs: Kernig's, Brudzinski's. Treat with IV antibiotics urgently — ceftriaxone.</p>
+        <span class="disease-tag">Infectious / Inflammatory</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FUN FACTS ===== -->
+<section id="fun">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Neuroscience Facts</div>
+      <h2 class="section-title">Did You <span class="hl">Know?</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="fun-grid">
+      <div class="fun-card reveal float">
+        <div class="fun-num">20%</div>
+        <div class="fun-label">Body Energy Usage</div>
+        <div class="fun-sub">Brain uses about 20% of the body's total energy despite being only ~2% of body weight</div>
+      </div>
+      <div class="fun-card reveal float" style="animation-delay:0.5s">
+        <div class="fun-num">86B</div>
+        <div class="fun-label">Neurons</div>
+        <div class="fun-sub">You have around 86 billion neurons — more than the number of stars in the Milky Way</div>
+      </div>
+      <div class="fun-card reveal float" style="animation-delay:1s">
+        <div class="fun-num">100T</div>
+        <div class="fun-label">Synaptic Connections</div>
+        <div class="fun-sub">Over 100 trillion synapses connect neurons, forming the most complex structure in the known universe</div>
+      </div>
+      <div class="fun-card reveal float" style="animation-delay:1.5s">
+        <div class="fun-num">120m/s</div>
+        <div class="fun-label">Signal Speed</div>
+        <div class="fun-sub">Nerve signals travel up to 120 meters per second — faster than a sports car</div>
+      </div>
+      <div class="fun-card reveal float" style="animation-delay:2s">
+        <div class="fun-num">1400g</div>
+        <div class="fun-label">Average Brain Weight</div>
+        <div class="fun-sub">The adult human brain weighs about 1,400 grams — roughly the weight of a small laptop</div>
+      </div>
+      <div class="fun-card reveal float" style="animation-delay:2.5s">
+        <div class="fun-num">70%</div>
+        <div class="fun-label">Water Content</div>
+        <div class="fun-sub">The brain is about 70% water. Even mild dehydration can impair memory and concentration</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-logo">NEURO<span style="color:var(--neon2)">X</span></div>
+  <div class="footer-links">
+    <a href="#anatomy">Anatomy</a>
+    <a href="#functions">Functions</a>
+    <a href="#nerves">Nerves</a>
+    <a href="#diseases">Diseases</a>
+  </div>
+  <div class="footer-credit">Made by <a href="https://www.instagram.com/codewithdr?igsh=MW9iYzBkdjd5bXBobg==" target="_blank" rel="noopener">Dr. Physio</a></div>
+  <div class="footer-copy">© 2025 Brain Explorer — NeuroX. For educational purposes only.</div>
+</footer>
+
+<!-- ===== QUIZ MODAL ===== -->
+<div id="quiz-overlay">
+  <div id="quiz-modal">
+    <div class="quiz-header">
+      <div class="quiz-title">⚡ QUIZ MODE</div>
+      <button class="quiz-close" onclick="closeQuiz()">✕</button>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="quiz-progress-bar">
+      <div class="quiz-progress-fill" id="quiz-progress" style="width:0%"></div>
+    </div>
+
+    <!-- Question Area -->
+    <div id="quiz-q-area">
+      <div class="quiz-q-num" id="quiz-q-num">QUESTION 1 / 10</div>
+      <div class="quiz-q-text" id="quiz-q-text"></div>
+      <div class="quiz-options" id="quiz-options"></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+      <button class="quiz-next" id="quiz-next" onclick="nextQuestion()">NEXT QUESTION →</button>
+    </div>
+
+    <!-- Score Screen -->
+    <div id="score-screen">
+      <div class="score-circle">
+        <div class="score-num" id="score-num">0</div>
+        <div class="score-denom">out of 10</div>
+      </div>
+      <div class="score-msg" id="score-msg"></div>
+      <div class="score-sub" id="score-sub"></div>
+      <button class="quiz-restart" onclick="restartQuiz()">RETRY QUIZ</button>
+      <button class="quiz-close" onclick="closeQuiz()" style="width:auto;padding:12px 24px;border-radius:8px;font-size:0.8rem;letter-spacing:1px;">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== THREE.JS CDN ===== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===================================================
+// 3D BRAIN VISUALIZATION WITH THREE.JS
+// ===================================================
+(function() {
+  const canvas = document.getElementById('brain-canvas');
+  const wrap = document.getElementById('brain-canvas-wrap');
+  const infoBox = document.getElementById('hotspot-info');
+  const infoName = document.getElementById('hotspot-name');
+  const infoDesc = document.getElementById('hotspot-desc');
+
+  // Scene setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  camera.position.set(0, 0, 5);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0x000000, 0);
+  renderer.shadowMap.enabled = true;
+
+  function resize() {
+    const w = wrap.offsetWidth;
+    renderer.setSize(w, w);
+    camera.aspect = 1;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0x00d4ff, 0.3);
+  scene.add(ambient);
+
+  const dirLight = new THREE.DirectionalLight(0x00d4ff, 1.2);
+  dirLight.position.set(5, 5, 5);
+  scene.add(dirLight);
+
+  const purpleLight = new THREE.PointLight(0x7b2fff, 1.5, 20);
+  purpleLight.position.set(-3, 2, 2);
+  scene.add(purpleLight);
+
+  const pinkLight = new THREE.PointLight(0xff2fa0, 0.8, 15);
+  pinkLight.position.set(3, -2, 1);
+  scene.add(pinkLight);
+
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  backLight.position.set(-5, -5, -5);
+  scene.add(backLight);
+
+  // Brain geometry — procedural brain shape
+  const brainGroup = new THREE.Group();
+  scene.add(brainGroup);
+
+  // Main brain body
+  function createBrainLobe(x, y, z, rx, ry, rz, color, opacity = 0.85) {
+    const geo = new THREE.SphereGeometry(1, 32, 32);
+    // Deform slightly for organic look
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const px = pos.getX(i);
+      const py = pos.getY(i);
+      const pz = pos.getZ(i);
+      const noise = 0.08 * Math.sin(px * 3.5 + py * 2.8) * Math.cos(pz * 4);
+      pos.setXYZ(i, px + noise, py + noise * 0.8, pz + noise);
+    }
+    geo.computeVertexNormals();
+    const mat = new THREE.MeshPhongMaterial({
+      color,
+      transparent: true,
+      opacity,
+      shininess: 40,
+      specular: new THREE.Color(0x00d4ff),
+      emissive: new THREE.Color(color).multiplyScalar(0.05)
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    mesh.scale.set(rx, ry, rz);
+    return mesh;
+  }
+
+  // Left hemisphere
+  const leftHemi = createBrainLobe(-0.55, 0.1, 0, 1.0, 0.9, 1.1, 0x1a3a5c, 0.9);
+  // Right hemisphere
+  const rightHemi = createBrainLobe(0.55, 0.1, 0, 1.0, 0.9, 1.1, 0x1a3a5c, 0.9);
+  // Cerebellum
+  const cerebellum = createBrainLobe(0, -0.95, -0.4, 0.75, 0.55, 0.65, 0x0d2b4a, 0.9);
+  // Brainstem
+  const bsGeo = new THREE.CylinderGeometry(0.18, 0.14, 0.8, 16);
+  const bsMat = new THREE.MeshPhongMaterial({ color: 0x0a2238, shininess: 30, specular: new THREE.Color(0x00d4ff) });
+  const brainstem = new THREE.Mesh(bsGeo, bsMat);
+  brainstem.position.set(0, -1.3, -0.1);
+
+  // Surface fold lines (gyri/sulci effect)
+  function addSulci(parent) {
+    for (let i = 0; i < 18; i++) {
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3((Math.random()-0.5)*1.6, (Math.random()-0.5)*1.4, (Math.random()-0.5)*1.6),
+        new THREE.Vector3((Math.random()-0.5)*1.8, (Math.random()-0.5)*1.6, (Math.random()-0.5)*1.8),
+        new THREE.Vector3((Math.random()-0.5)*1.6, (Math.random()-0.5)*1.4, (Math.random()-0.5)*1.6)
+      );
+      const pts = curve.getPoints(12);
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const mat = new THREE.LineBasicMaterial({ color: 0x00d4ff, opacity: 0.12, transparent: true });
+      parent.add(new THREE.Line(geo, mat));
+    }
+  }
+  addSulci(leftHemi);
+  addSulci(rightHemi);
+
+  brainGroup.add(leftHemi, rightHemi, cerebellum, brainstem);
+
+  // Wireframe overlay
+  const wfGeo = new THREE.SphereGeometry(1.85, 16, 16);
+  const wfMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, wireframe: true, opacity: 0.04, transparent: true });
+  const wireframe = new THREE.Mesh(wfGeo, wfMat);
+  scene.add(wireframe);
+
+  // ===== HOTSPOTS =====
+  const hotspotData = [
+    { name: 'Frontal Lobe', desc: 'Controls personality, decision making, voluntary movement, and speech production (Broca\'s area).', pos: [-0.5, 0.7, 0.8], color: 0x00d4ff },
+    { name: 'Parietal Lobe', desc: 'Processes sensory information — touch, pain, temperature. Key for spatial awareness.', pos: [-0.5, 0.9, -0.3], color: 0x7b2fff },
+    { name: 'Temporal Lobe', desc: 'Hearing, language comprehension (Wernicke\'s area), and memory formation (hippocampus).', pos: [-1.1, -0.1, 0.3], color: 0xff2fa0 },
+    { name: 'Occipital Lobe', desc: 'Primary visual processing area. Damage causes visual field defects or cortical blindness.', pos: [0, 0.3, -1.1], color: 0x00ff88 },
+    { name: 'Cerebellum', desc: 'Controls balance, coordination, and fine motor movements. Damage = ataxia.', pos: [0.5, -1.0, -0.5], color: 0xffaa00 },
+    { name: 'Brainstem', desc: 'Controls vital functions — breathing, heart rate, blood pressure. Midbrain + Pons + Medulla.', pos: [0, -1.3, 0.1], color: 0xff4444 },
+  ];
+
+  const hotspots = [];
+  hotspotData.forEach((h, i) => {
+    const geo = new THREE.SphereGeometry(0.07, 12, 12);
+    const mat = new THREE.MeshBasicMaterial({ color: h.color });
+    const sphere = new THREE.Mesh(geo, mat);
+    sphere.position.set(...h.pos);
+    sphere.userData = { name: h.name, desc: h.desc, color: h.color };
+
+    // Glow ring
+    const ringGeo = new THREE.RingGeometry(0.09, 0.13, 20);
+    const ringMat = new THREE.MeshBasicMaterial({ color: h.color, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.userData.isRing = true;
+    sphere.add(ring);
+
+    brainGroup.add(sphere);
+    hotspots.push(sphere);
+  });
+
+  // ===== ORBIT CONTROLS (manual implementation) =====
+  let isDragging = false;
+  let prevMouse = { x: 0, y: 0 };
+  let rotX = 0.2, rotY = 0;
+  let targetRotX = 0.2, targetRotY = 0;
+  let zoom = 5;
+
+  const canvasEl = canvas;
+  canvasEl.addEventListener('mousedown', (e) => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+  canvasEl.addEventListener('touchstart', (e) => { isDragging = true; prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY }; });
+  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('touchend', () => isDragging = false);
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - prevMouse.x;
+    const dy = e.clientY - prevMouse.y;
+    targetRotY += dx * 0.008;
+    targetRotX += dy * 0.008;
+    prevMouse = { x: e.clientX, y: e.clientY };
+  });
+  window.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - prevMouse.x;
+    const dy = e.touches[0].clientY - prevMouse.y;
+    targetRotY += dx * 0.008;
+    targetRotX += dy * 0.008;
+    prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  });
+
+  canvasEl.addEventListener('wheel', (e) => {
+    zoom += e.deltaY * 0.005;
+    zoom = Math.max(3, Math.min(9, zoom));
+    e.preventDefault();
+  }, { passive: false });
+
+  // Raycasting for hotspot click
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  canvasEl.addEventListener('click', (e) => {
+    const rect = canvasEl.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(hotspots, false);
+    if (hits.length > 0) {
+      const h = hits[0].object;
+      infoName.textContent = h.userData.name;
+      infoDesc.textContent = h.userData.desc;
+      // Position info box
+      const x = e.clientX - wrap.getBoundingClientRect().left;
+      const y = e.clientY - wrap.getBoundingClientRect().top;
+      infoBox.style.left = Math.min(x + 12, wrap.offsetWidth - 240) + 'px';
+      infoBox.style.top = Math.max(y - 80, 10) + 'px';
+      infoBox.classList.add('show');
+      infoBox.style.borderColor = '#' + h.userData.color.toString(16).padStart(6, '0');
+      setTimeout(() => infoBox.classList.remove('show'), 4000);
+    }
+  });
+
+  // ===== ANIMATION LOOP =====
+  let frame = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    frame++;
+
+    // Smooth rotation
+    if (!isDragging) targetRotY += 0.003;
+    rotX += (targetRotX - rotX) * 0.06;
+    rotY += (targetRotY - rotY) * 0.06;
+    camera.position.z += (zoom - camera.position.z) * 0.06;
+
+    brainGroup.rotation.x = rotX;
+    brainGroup.rotation.y = rotY;
+    wireframe.rotation.y = frame * 0.002;
+    wireframe.rotation.x = frame * 0.001;
+
+    // Pulse hotspots
+    hotspots.forEach((h, i) => {
+      const ring = h.children[0];
+      if (ring) {
+        const s = 1 + 0.3 * Math.sin(frame * 0.05 + i * 1.2);
+        ring.scale.set(s, s, s);
+        ring.material.opacity = 0.4 + 0.3 * Math.sin(frame * 0.05 + i * 1.2);
+        ring.lookAt(camera.position);
+      }
+    });
+
+    // Pulse lights
+    purpleLight.intensity = 1.2 + 0.5 * Math.sin(frame * 0.03);
+    pinkLight.intensity = 0.6 + 0.4 * Math.cos(frame * 0.04);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+// ===================================================
+// SCROLL REVEAL
+// ===================================================
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), 80);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => observer.observe(r));
+
+// ===================================================
+// QUIZ SYSTEM
+// ===================================================
+const quizData = [
+  {
+    q: "Which lobe of the brain is responsible for voluntary movement and personality?",
+    opts: ["Parietal Lobe", "Occipital Lobe", "Frontal Lobe", "Temporal Lobe"],
+    ans: 2,
+    exp: "The Frontal Lobe contains the motor cortex and prefrontal cortex — responsible for voluntary movement, personality, and executive function."
+  },
+  {
+    q: "Broca's aphasia causes which type of speech problem?",
+    opts: ["Cannot understand speech", "Fluent but meaningless speech", "Non-fluent, broken speech production", "Complete mutism"],
+    ans: 2,
+    exp: "Broca's area controls speech production. Damage = non-fluent (Broca's) aphasia — patient understands but speaks in broken sentences."
+  },
+  {
+    q: "Which structure connects the two hemispheres of the brain?",
+    opts: ["Cerebellum", "Corpus Callosum", "Brainstem", "Thalamus"],
+    ans: 1,
+    exp: "The Corpus Callosum is a thick band of nerve fibers that connects the left and right cerebral hemispheres."
+  },
+  {
+    q: "The Circle of Willis is located at the:",
+    opts: ["Top of the brain", "Base of the brain", "Cerebellum", "Brainstem only"],
+    ans: 1,
+    exp: "The Circle of Willis is an anastomotic ring at the BASE of the brain formed by internal carotid and vertebral arteries providing collateral blood flow."
+  },
+  {
+    q: "Which cranial nerve controls the tongue movements?",
+    opts: ["CN IX (Glossopharyngeal)", "CN X (Vagus)", "CN XI (Accessory)", "CN XII (Hypoglossal)"],
+    ans: 3,
+    exp: "CN XII (Hypoglossal nerve) is a purely motor nerve that controls all tongue movements. Damage causes tongue deviation toward the affected side."
+  },
+  {
+    q: "In Alzheimer's disease, which protein deposits form between neurons?",
+    opts: ["Alpha-synuclein", "Beta-amyloid plaques", "TDP-43", "Prion protein"],
+    ans: 1,
+    exp: "Alzheimer's is characterized by beta-amyloid plaques between neurons AND neurofibrillary tau tangles inside neurons."
+  },
+  {
+    q: "Classic triad of Parkinson's disease includes all EXCEPT:",
+    opts: ["Resting tremor", "Rigidity", "Bradykinesia", "Ataxia"],
+    ans: 3,
+    exp: "Parkinson's classic triad: Tremor (resting, pill-rolling) + Rigidity (cogwheel) + Bradykinesia. Ataxia is a feature of cerebellar disease, NOT Parkinson's."
+  },
+  {
+    q: "Which area of the brain controls balance and coordination?",
+    opts: ["Frontal Lobe", "Occipital Lobe", "Cerebellum", "Hypothalamus"],
+    ans: 2,
+    exp: "The Cerebellum (little brain) is the primary center for balance, coordination, and fine motor control. Damage = ataxia."
+  },
+  {
+    q: "The most common site of stroke involves which cerebral artery?",
+    opts: ["Anterior Cerebral Artery", "Middle Cerebral Artery", "Posterior Cerebral Artery", "Basilar Artery"],
+    ans: 1,
+    exp: "The Middle Cerebral Artery (MCA) territory is the most commonly affected in stroke, causing contralateral weakness (face and arm > leg) and aphasia."
+  },
+  {
+    q: "Kernig's sign and Brudzinski's sign are clinical features of:",
+    opts: ["Brain tumor", "Stroke", "Meningitis", "Epilepsy"],
+    ans: 2,
+    exp: "Kernig's sign (inability to extend knee when hip is flexed) and Brudzinski's sign (neck flexion causes hip flexion) are classic signs of meningeal irritation in meningitis."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+
+function openQuiz() {
+  document.getElementById('quiz-overlay').classList.add('open');
+  currentQ = 0;
+  score = 0;
+  answered = false;
+  document.getElementById('score-screen').classList.remove('show');
+  document.getElementById('quiz-q-area').style.display = 'block';
+  loadQuestion();
+}
+
+function closeQuiz() {
+  document.getElementById('quiz-overlay').classList.remove('open');
+}
+
+function loadQuestion() {
+  answered = false;
+  const q = quizData[currentQ];
+  document.getElementById('quiz-q-num').textContent = `QUESTION ${currentQ + 1} / 10`;
+  document.getElementById('quiz-q-text').textContent = q.q;
+  document.getElementById('quiz-progress').style.width = `${(currentQ / 10) * 100}%`;
+
+  const optsEl = document.getElementById('quiz-options');
+  optsEl.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = `${['A','B','C','D'][i]}. ${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    optsEl.appendChild(btn);
+  });
+
+  const fb = document.getElementById('quiz-feedback');
+  fb.className = 'quiz-feedback';
+  fb.textContent = '';
+  document.getElementById('quiz-next').classList.remove('show');
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = quizData[currentQ];
+  const opts = document.querySelectorAll('.quiz-opt');
+
+  opts.forEach(o => o.disabled = true);
+
+  if (idx === q.ans) {
+    opts[idx].classList.add('correct');
+    score++;
+    showFeedback(true, '✅ Correct! ' + q.exp);
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.ans].classList.add('correct');
+    showFeedback(false, '❌ Wrong. ' + q.exp);
+  }
+  document.getElementById('quiz-next').classList.add('show');
+}
+
+function showFeedback(correct, text) {
+  const fb = document.getElementById('quiz-feedback');
+  fb.textContent = text;
+  fb.className = `quiz-feedback show ${correct ? 'correct' : 'wrong'}`;
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= 10) {
+    showScore();
+  } else {
+    loadQuestion();
+  }
+}
+
+function showScore() {
+  document.getElementById('quiz-q-area').style.display = 'none';
+  const sc = document.getElementById('score-screen');
+  sc.classList.add('show');
+  document.getElementById('quiz-progress').style.width = '100%';
+  document.getElementById('score-num').textContent = score;
+
+  const msgs = [
+    [0, 3, "Keep Studying!", "Review the anatomy sections and try again. You've got this!"],
+    [4, 6, "Good Effort!", "Decent score! Brush up on the clinical conditions section."],
+    [7, 8, "Well Done!", "Great knowledge of neurology! Review the missed questions."],
+    [9, 10, "Excellent! 🏆", "Outstanding! You have excellent neuro knowledge!"]
+  ];
+  let msg = msgs[0];
+  for (const m of msgs) { if (score >= m[0] && score <= m[1]) { msg = m; break; } }
+  document.getElementById('score-msg').textContent = msg[2];
+  document.getElementById('score-sub').textContent = msg[3];
+}
+
+function restartQuiz() {
+  openQuiz();
+}
+
+// Close quiz on overlay click
+document.getElementById('quiz-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeQuiz();
+});
+
+// Keyboard shortcut
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeQuiz();
+});
+</script>
+</body>
+</html>
